@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0275d8">
+  <link rel="manifest" href="/manifest.json">
+  <!-- Normalize.css for better cross-browser consistency -->
+  <link rel="stylesheet" src="//normalize-css.googlecode.com/svn/trunk/normalize.css" />
+  <link rel="icon" href="/img/icon_144.png">
+  <link rel="preload" href="css/styles.css" as="style">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content -->
+  <title>Restaurant Reviews</title>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <h1><a href="/">Restaurant Reviews</a></h1>
+    </nav>
+  </header>
+
+  <main id="maincontent">
+    <!-- https://stackoverflow.com/questions/44712753/ -->
+    <section id="map-container" role="presentation">
+      <div id="map"></div>
+    </section>
+    <section>
+      <div class="filter-options">
+        <select id="neighborhoods-select" name="neighborhoods" role="listbox" onchange="updateRestaurants()" aria-label="Neighborhood Selector">
+          <option value="all">All Neighborhoods</option>
+        </select>
+        <select id="cuisines-select" name="cuisines" role="listbox" onchange="updateRestaurants()" aria-label="Cuisines Selector">
+          <option value="all">All Cuisines</option>
+        </select>
+      </div>
+      <h2>Filter Results</h2>
+      <ul id="restaurants-list" role="list"></ul>
+    </section>
+  </main>
+
+  <footer id="footer">
+    Copyright (c) 2017 <a href="/" role="link"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
+  </footer>
+  <script type="application/javascript" charset="utf-8" src="js/dbhelper.js"></script>
+  <script type="application/javascript" charset="utf-8" src="sw.js"></script>
+  <script type="application/javascript" charset="utf-8" src="js/main.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA7_2mjv6BUTJSpU_tW4RTRbbLKAmpUZwE&libraries=places&callback=initMap"></script>
+  <script src="js/lazysizes.min.js" async=""></script>
+</body>
+
+<!-- aria https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques -->
+
+</html>
