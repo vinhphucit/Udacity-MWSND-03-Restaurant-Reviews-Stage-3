@@ -50,9 +50,9 @@ fetchRestaurantFromURL = (callback) => {
  * fetch reviews
  */
 fetchReviews = () => {
-  const id = getParameterByName('id');
+  const id = parseInt(getParameterByName('id'));
   if (!id) {
-    console.log('No restaurant id in URL');
+    console.log('No restaurant id in URL to fetchReviews');
     return;
   }
   DBHelper.fetchReviewsForRestaurant(id, (err, reviews) => {
@@ -70,8 +70,7 @@ fetchReviews = () => {
  */
 setFavoriteButton = (status) => {
   const favCheck = document.getElementById('favCheck');
-  console.log(status)
-  favCheck.innerHTML = (status==='true' ? 'Favourite' : 'Not Favourite');
+  favCheck.innerHTML = (status === 'true' ? 'Favourite' : 'Not Favourite');
 }
 
 /**
@@ -85,11 +84,20 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const address = document.getElementById('restaurant-address');
   address.innerHTML = restaurant.address;
 
+  // const image = document.getElementById('restaurant-img');
+  // image.className = 'restaurant-img lazyload';
+  // image.alt = 'Photo of ' + restaurant.name;
+  // image.setAttribute('data-src', DBHelper.imageUrlForRestaurant(restaurant));
+  // image.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-img lazyload';
   image.alt = 'Photo of ' + restaurant.name;
-  image.setAttribute('data-src', DBHelper.imageUrlForRestaurant(restaurant));
-  image.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  image.src = DBHelper.imageUrlForRestaurant(restaurant);
+
+  // Set srcset for responsive
+  const image480 = image.src.replace(/(\.[\w\d_-]+)$/i, '-480$1')
+  image.setAttribute('srcset', `${image480} 480w, ${image.src} 800w`);
 
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
@@ -211,49 +219,55 @@ navigator.serviceWorker.ready.then(function (swRegistration) {
     e.preventDefault();
     let rating = form.querySelector('#rating');
     let review = {
-      restaurant_id: getParameterByName('id'),
+      restaurant_id: parseInt(getParameterByName('id')),
       name: form.querySelector('#name').value,
       rating: rating.options[rating.selectedIndex].value,
       comments: form.querySelector('#comment').value
     };
-    idb.open('review', 1, function (upgradeDb) {
-      upgradeDb.createObjectStore('outbox', { autoIncrement: true, keyPath: 'id' });
-    }).then(function (db) {
-      var transaction = db.transaction('outbox', 'readwrite');
-      return transaction.objectStore('outbox').put(review);
-    }).then(function () {
+    DBHelper.submitReview(review, (error) => {
+      if (error) {
+        console.log('swRegistration.sync.register');
+        return swRegistration.sync.register('myFirstSync').then(() => {
+          console.log('Sync registered');
+        });
+      }
+    }).then((data) => {
+      const ul = document.getElementById('reviews-list');
+      review.createdAt = new Date();
+      review.updatedAt = new Date();
+      ul.appendChild(createReviewHTML(review));
       form.reset();
-      return swRegistration.sync.register('sync').then(() => {
-        const ul = document.getElementById('reviews-list');
-        review.createdAt = new Date();
-        review.updatedAt = new Date();
-        ul.appendChild(createReviewHTML(review));
+    }).catch(error => {
+      console.log(error);
+      console.log('swRegistration.sync.register');
+      return swRegistration.sync.register('myFirstSync').then(() => {
+        console.log('Sync registered');
       });
-    });
-    // finish
+    }
+    );
   });
+});
 
+navigator.serviceWorker.ready.then(function (swRegistration) {
   let favCheck = document.getElementById('favCheck');
   favCheck.addEventListener('click', event => {
-    const opposite = (self.restaurant.is_favorite === 'true') ? 'false' : 'true';
-    let res = {
-      resId: getParameterByName('id'),
-      favorite: opposite
-    };
 
-    // save to DB
-    idb.open('favorite', 1, function (upgradeDb) {
-      upgradeDb.createObjectStore('outbox', { autoIncrement: true, keyPath: 'id' });
-    }).then(function (db) {
-      var transaction = db.transaction('outbox', 'readwrite');
-      return transaction.objectStore('outbox').put(res);
-    }).then(function () {
+    const opposite = (self.restaurant.is_favorite === 'true') ? 'false' : 'true';
+
+    DBHelper.toggleFavorite(self.restaurant, opposite, (error) => {
+      if (error) {
+        console.log('swRegistration.sync.register');
+        return swRegistration.sync.register('myFirstSync').then(() => {
+          console.log('Sync registered');
+        });
+      }
+    }).then(() => {
       setFavoriteButton(opposite);
-      self.restaurant.is_favorite = opposite;
-      // register for sync and clean up the form
-      return swRegistration.sync.register('favorite').then(() => {
-        console.log('Favorite Sync registered');
-      });
-    });
+    }).catch(error => {
+      console.log(error);
+
+    }
+    );
+
   });
 });

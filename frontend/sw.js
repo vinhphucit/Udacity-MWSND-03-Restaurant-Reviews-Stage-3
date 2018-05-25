@@ -1,26 +1,67 @@
 let version = '1.3.0';
 let staticCacheName = 'restaurant-static-v3';
-let DBName = 'restaurant';
-let DBVersion = 1;
-
+let dbPromiseVar;
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').then(registration => {
-      // Registration was successful
-      console.log('ServiceWorker registration successful with scope: ', registration.scope);
-    }, err => {
-      // registration failed :(
-      console.log('ServiceWorker registration failed: ', err);
-    });
+  console.log("serviceWorker in navigator");
+  navigator.serviceWorker.register('sw.js').then(registration => {
+    // Registration was successful
+    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+  }, err => {
+    // registration failed :(
+    console.log('ServiceWorker registration failed: ', err);
+  });
+
+  navigator.serviceWorker.ready.then(function (swRegistration) {
+    return swRegistration.sync.register('myFirstSync');
   });
 }
 
-self.addEventListener('activate',  event => {
-  event.waitUntil((function(){
+
+self.addEventListener('sync', function (event) {
+  console.log("START SYNCING");
+  if (event.tag === 'myFirstSync') {
+    event.waitUntil(
+      sendReviews().then(() => {
+      }).catch(err => {
+        console.log(err);
+      })
+    );
+    event.waitUntil(
+      sendFavorites().then(() => {
+      }).catch(err => {
+        console.log(err);
+      })
+    );
+  }
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil((function () {
     self.clients.claim();
-    initDB();
+    dbPromise();
   })());
 });
+
+
+function dbPromise() {
+  let DBName = 'restaurant';
+  let DBVersion = 1;
+
+  if (!dbPromiseVar)
+    dbPromiseVar = idb.open(DBName, DBVersion, function (upgradeDb) {
+      if (!upgradeDb.objectStoreNames.contains('restaurants')) {
+        upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });
+        var reviewstore = upgradeDb.createObjectStore('reviews', { keyPath: 'id' });
+        reviewstore.createIndex('restaurant_id', 'restaurant_id');
+        upgradeDb.createObjectStore('favoriteoutbox', { keyPath: 'id' });
+        upgradeDb.createObjectStore('reviewoutbox', { keyPath: 'updatedAt' });
+      }
+    });
+  return dbPromiseVar;
+
+}
+
+
 
 self.addEventListener('install', function (event) {
   event.waitUntil(
@@ -35,16 +76,16 @@ self.addEventListener('install', function (event) {
         'js/restaurant_info.js',
         'sw.js',
         'js/idb.js',
-        'img/1.webp',
-        'img/2.webp',
-        'img/3.webp',
-        'img/4.webp',
-        'img/5.webp',
-        'img/6.webp',
-        'img/7.webp',
-        'img/8.webp',
-        'img/9.webp',
-        'img/10.webp'
+        'img/1.jpg', 'img/1-480.jpg',
+        'img/2.jpg', 'img/2-480.jpg',
+        'img/3.jpg', 'img/3-480.jpg',
+        'img/4.jpg', 'img/4-480.jpg',
+        'img/5.jpg', 'img/5-480.jpg',
+        'img/6.jpg', 'img/6-480.jpg',
+        'img/7.jpg', 'img/7-480.jpg',
+        'img/8.jpg', 'img/8-480.jpg',
+        'img/9.jpg', 'img/9-480.jpg',
+        'img/10.jpg', 'img/10-480.jpg'
       ]);
     })
   );
@@ -67,15 +108,21 @@ self.addEventListener('activate', function (event) {
 
 
 self.addEventListener('fetch', function (event) {
+  var requestUrl = new URL(event.request.url);
+
+  if (requestUrl.pathname.startsWith('/restaurant.html')) {
+    event.respondWith(serveRestaurantDetail(event.request));
+    return;
+  }
+
   if (event.request.url.endsWith('localhost:1337/restaurants')) {
     event.respondWith(
-      dbPromise.then(function (db) {
+      dbPromise().then(function (db) {
         var tx = db.transaction('restaurants', 'readonly');
         var store = tx.objectStore('restaurants');
         return store.getAll();
       }).then(function (items) {
         if (!items.length) {
-          console.log("fetching restaurants from API")
           return fetch(event.request).then(function (response) {
             return response.clone().json().then(json => {
               saveAllRestaurants(json);
@@ -83,7 +130,6 @@ self.addEventListener('fetch', function (event) {
             })
           });
         } else {
-          console.log('getting restaurants from DB');
           let response = new Response(JSON.stringify(items), {
             headers: new Headers({
               'Content-type': 'application/json',
@@ -97,23 +143,21 @@ self.addEventListener('fetch', function (event) {
       })
     );
 
-    return; 
+    return;
   }
 
-  
+
   event.respondWith(
     caches.match(event.request).then(function (response) {
 
       if (response) {
-        console.log('Found ', event.request.url, ' in cache');
         return response;
       }
-      console.log('Network request for ', event.request.url);
       return fetch(event.request)
         .then(function (response) {
           return caches.open(staticCacheName).then(function (cache) {
             //never cache data from google map
-            if (event.request.url.indexOf('maps') < 0) { 
+            if (event.request.url.indexOf('maps') < 0 && !event.request.url.includes('localhost:1337')) {
               cache.put(event.request.url, response.clone());
             }
             return response;
@@ -126,23 +170,28 @@ self.addEventListener('fetch', function (event) {
   );
 });
 
+function serveRestaurantDetail(request) {
+  return caches.open(staticCacheName).then(function (cache) {
+    return cache.match('/restaurant.html').then(function (response) {
+      if (response) return response;
 
-function initDB() {
-  dbPromise = idb.open(DBName, DBVersion, function (upgradeDb) {
-    if (!upgradeDb.objectStoreNames.contains('restaurants')) {
-      upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });
-    }
+      return fetch(request).then(function (networkResponse) {
+        cache.put(request, networkResponse.clone());
+        return networkResponse;
+      });
+    });
   });
 }
 
+
 function saveAllRestaurants(rlist) {
   let tx;
-  dbPromise.then(function (db) {
+  dbPromise().then(function (db) {
     tx = db.transaction('restaurants', 'readwrite');
     var store = tx.objectStore('restaurants');
     rlist.forEach(function (res) {
       console.log('adding', res);
-      store.put(res); 
+      store.put(res);
     });
     return tx.complete;
   }).then(function () {
@@ -153,33 +202,20 @@ function saveAllRestaurants(rlist) {
 }
 
 
-self.addEventListener('sync', function (event) {
-  if (event.tag === 'sync') {
-    event.waitUntil(
-      sendReviews().then(() => {
-      }).catch(err => {
-      })
-    );
-  } else if (event.tag === 'favorite') {
-    event.waitUntil(
-      sendFavorites().then(() => {
-      }).catch(err => {
-      })
-    );
-  }
-});
+
 
 function sendFavorites() {
-  return idb.open('favorite', 1).then(db => {
-    let tx = db.transaction('outbox', 'readonly');
-    return tx.objectStore('outbox').getAll();
+  return dbPromise().then(db => {
+    let tx = db.transaction('favoriteoutbox', 'readonly');
+    return tx.objectStore('favoriteoutbox').getAll();
   }).then(items => {
     return Promise.all(items.map(item => {
       let id = item.id;
+      let is_favorite = (item.favorite === 'true')
       // delete review.id;
       console.log("sending favorite", item);
       // POST review
-      return fetch(`http://localhost:1337/restaurants/${item.resId}/?is_favorite=${item.favorite}`, {
+      return fetch(`http://localhost:1337/restaurants/${id}/?is_favorite=${is_favorite}`, {
         method: 'PUT'
       }).then(response => {
         console.log(response);
@@ -188,9 +224,9 @@ function sendFavorites() {
         console.log('added favorite', data);
         if (data) {
           // delete from db
-          idb.open('favorite', 1).then(db => {
-            let tx = db.transaction('outbox', 'readwrite');
-            return tx.objectStore('outbox').delete(id);
+          dbPromise().then(db => {
+            let tx = db.transaction('favoriteoutbox', 'readwrite');
+            return tx.objectStore('favoriteoutbox').delete(id);
           });
         }
       });
@@ -199,13 +235,11 @@ function sendFavorites() {
 }
 
 function sendReviews() {
-  return idb.open('review', 1).then(db => {
-    let tx = db.transaction('outbox', 'readonly');
-    return tx.objectStore('outbox').getAll();
+  return dbPromise().then(db => {
+    let tx = db.transaction('reviewoutbox', 'readonly');
+    return tx.objectStore('reviewoutbox').getAll();
   }).then(reviews => {
     return Promise.all(reviews.map(review => {
-      let reviewID = review.id;
-      delete review.id;
       console.log("sending review", review);
       // POST review
       return fetch('http://localhost:1337/reviews', {
@@ -222,25 +256,19 @@ function sendReviews() {
         console.log('added review', data);
         if (data) {
           // delete from db
-          idb.open('review', 1).then(db => {
-            let tx = db.transaction('outbox', 'readwrite');
-            return tx.objectStore('outbox').delete(reviewID);
+          dbPromise().then(db => {
+            const reviewstx = db.transaction('reviews', 'readwrite');
+            const reviewsstore = reviewstx.objectStore('reviews');
+            reviewsstore.put(data);
+
+            let tx = db.transaction('reviewoutbox', 'readwrite');
+            return tx.objectStore('reviewoutbox').delete(review.updatedAt);
           });
         }
       });
     }));
   });
 }
-
-
-
-
-
-
-
-
-
-
 
 'use strict';
 

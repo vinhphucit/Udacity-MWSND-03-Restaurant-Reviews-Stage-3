@@ -21,9 +21,9 @@
           "Sunday": "12:00 pm - 4:00 pm, 5:30 pm - 11:00 pm"
         },
         "createdAt": 1504095563444,
-        "updatedAt": "2018-05-24T04:30:00.824Z",
+        "updatedAt": "2018-05-25T20:19:58.420Z",
         "id": 1,
-        "is_favorite": "true"
+        "is_favorite": "false"
       },
       {
         "name": "Emily",
@@ -45,8 +45,8 @@
           "Sunday": "12:00 pm - 3:00 pm, 5:00 pm - 11:00 pm"
         },
         "createdAt": 1504095568414,
-        "updatedAt": "2017-09-14T14:05:54.800Z",
-        "is_favorite": false,
+        "updatedAt": "2018-05-25T19:50:36.501Z",
+        "is_favorite": "false",
         "id": 2
       },
       {
@@ -69,8 +69,9 @@
           "Sunday": "11:30 am - 2:00 am"
         },
         "createdAt": 1504095571434,
-        "updatedAt": 1504095571434,
-        "id": 3
+        "updatedAt": "2018-05-25T19:38:59.733Z",
+        "id": 3,
+        "is_favorite": "false"
       },
       {
         "name": "Katz's Delicatessen",
@@ -546,6 +547,78 @@
         "createdAt": "2018-05-23T07:51:07.602Z",
         "updatedAt": "2018-05-23T07:51:07.602Z",
         "id": 34
+      },
+      {
+        "restaurant_id": "1",
+        "name": "adsfadsf",
+        "rating": "3",
+        "comments": "asdfasdfasdf",
+        "createdAt": "2018-05-25T15:20:22.643Z",
+        "updatedAt": "2018-05-25T15:20:22.643Z",
+        "id": 35
+      },
+      {
+        "restaurant_id": "1",
+        "name": "1111111",
+        "rating": "1",
+        "comments": "1111111",
+        "createdAt": "2018-05-25T15:20:40.338Z",
+        "updatedAt": "2018-05-25T15:20:40.338Z",
+        "id": 36
+      },
+      {
+        "restaurant_id": "1",
+        "name": "321",
+        "rating": "3",
+        "comments": "321",
+        "createdAt": "2018-05-25T16:34:53.447Z",
+        "updatedAt": "2018-05-25T16:34:53.447Z",
+        "id": 37
+      },
+      {
+        "restaurant_id": "1",
+        "name": "333",
+        "rating": "3",
+        "comments": "333",
+        "createdAt": "2018-05-25T16:36:05.999Z",
+        "updatedAt": "2018-05-25T16:36:05.999Z",
+        "id": 38
+      },
+      {
+        "restaurant_id": "1",
+        "name": "444",
+        "rating": "3",
+        "comments": "444",
+        "createdAt": "2018-05-25T16:45:06.397Z",
+        "updatedAt": "2018-05-25T16:45:06.397Z",
+        "id": 39
+      },
+      {
+        "restaurant_id": 1,
+        "name": "test so nguyen",
+        "rating": "3",
+        "comments": "test so nguyen",
+        "createdAt": "2018-05-25T18:34:33.838Z",
+        "updatedAt": "2018-05-25T18:34:33.838Z",
+        "id": 40
+      },
+      {
+        "restaurant_id": 2,
+        "name": "444",
+        "rating": "3",
+        "comments": "444",
+        "updatedAt": 1527276175024,
+        "createdAt": 1527276175024,
+        "id": 41
+      },
+      {
+        "restaurant_id": 3,
+        "name": "666",
+        "rating": "3",
+        "comments": "666",
+        "updatedAt": 1527276893053,
+        "createdAt": 1527276893053,
+        "id": 42
       }
     ]
   },
@@ -601,7 +674,7 @@
       "id": 10
     },
     "reviews": {
-      "id": 34
+      "id": 42
     }
   }
 }
