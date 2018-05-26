@@ -227,3 +227,9 @@ addMarkersToMap = (restaurants = self.restaurants) => {
     self.markers.push(marker);
   });
 }
+
+
+window.toggleMap = () => {
+  const currentState = document.getElementById('map').style.display;
+  document.getElementById('map').style.display = currentState === 'none' ? 'block' : 'none';
+}

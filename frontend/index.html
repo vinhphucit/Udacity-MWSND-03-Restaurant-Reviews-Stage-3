@@ -21,12 +21,14 @@
         <a href="/">Restaurant Reviews</a>
       </h1>
     </nav>
+    <div class="map-toggle">
+      <button onclick="toggleMap()" title="Toggle map" aria-label="Toggle restaurants map"></button>
+    </div>
   </header>
 
   <main id="maincontent">
     <section id="map-container">
-      <div id="map" role="application" aria-hidden="true" aria-describedby="map-help"></div>
-      <div hidden id="map-help">A map that shows all filtered restaurants</div>
+        <div id="map" style="display: none" role="application"></div>
     </section>
     <section>
       <div class="filter-options">
