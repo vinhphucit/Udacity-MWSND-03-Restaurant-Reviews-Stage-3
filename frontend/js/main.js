@@ -180,8 +180,9 @@ createRestaurantHTML = (restaurant) => {
   const image = document.createElement('img');
 	image.className = 'restaurant-img lazyload';
 	image.alt = "Image Of " + restaurant.name;
-	image.src = DBHelper.imageUrlForRestaurant(restaurant);
-	
+  image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  // image.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+	// image.setAttribute('data-src', DBHelper.imageUrlForRestaurant(restaurant));
 	// Set srcset for responsive
 	const image480 = image.src.replace(/(\.[\w\d_-]+)$/i, '-480$1')
 	image.setAttribute('srcset', `${image480} 480w, ${image.src} 800w`);

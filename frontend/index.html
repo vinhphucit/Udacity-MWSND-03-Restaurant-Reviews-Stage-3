@@ -17,19 +17,21 @@
 <body>
   <header>
     <nav>
-      <h1><a href="/">Restaurant Reviews</a></h1>
+      <h1>
+        <a href="/">Restaurant Reviews</a>
+      </h1>
     </nav>
   </header>
 
   <main id="maincontent">
-    <!-- https://stackoverflow.com/questions/44712753/ -->
-    <section id="map-container" role="presentation">
-      <div id="map"></div>
+    <section id="map-container">
+      <div id="map" role="application" aria-hidden="true" aria-describedby="map-help"></div>
+      <div hidden id="map-help">A map that shows all filtered restaurants</div>
     </section>
     <section>
       <div class="filter-options">
         <select id="neighborhoods-select" name="neighborhoods" role="listbox" onchange="updateRestaurants()" aria-label="Neighborhood Selector">
-          <option value="all">All Neighborhoods</option>
+          <opti`on value="all">All Neighborhoods</option>
         </select>
         <select id="cuisines-select" name="cuisines" role="listbox" onchange="updateRestaurants()" aria-label="Cuisines Selector">
           <option value="all">All Cuisines</option>
@@ -38,12 +40,16 @@
       <h2>Filter Results</h2>
       <ul id="restaurants-list" role="list"></ul>
     </section>
+
   </main>
 
   <footer id="footer">
-    Copyright (c) 2017 <a href="/" role="link"><strong>Restaurant Reviews</strong></a> All Rights Reserved.
+    Copyright (c) 2017
+    <a href="/" role="link">
+      <strong>Restaurant Reviews</strong>
+    </a> All Rights Reserved.
   </footer>
-  
+
   <script type="application/javascript" charset="utf-8" encoding="gzip" src="sw.js"></script>
   <script type="application/javascript" charset="utf-8" encoding="gzip" src="js/dbhelper.js"></script>
   <script type="application/javascript" charset="utf-8" encoding="gzip" src="js/main.js"></script>
